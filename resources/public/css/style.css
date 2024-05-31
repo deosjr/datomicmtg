@@ -3,11 +3,13 @@
 }
 
 img {
-	height: 100%;
+	height: 15vh;
 }
 
 .card {
 	height: 15vh;
+	clip-path: inset(0 0 0 0 round 6%);
+	transition: all linear 250ms;
 }
 
 .card.tapped {
@@ -15,8 +17,16 @@ img {
 	/* transform-origin: center left; */
 }
 
+.card.stacktop {
+	margin-top: -1vh;
+}
+
 .card.header {
-	clip-path: xywh(0 0 100% 10%);
+	height: 3vh;
+}
+
+.card.header img {
+	clip-path: xywh(0 0 100% 20%);
 }
 
 .mtg {
@@ -36,7 +46,6 @@ img {
 }
 
 .graveyards {
-	width: 10%;
 	display: flex;
 	flex-direction: column;
 }
@@ -54,6 +63,7 @@ img {
 .battlefield {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 }
 
 .battlefield.opponent {

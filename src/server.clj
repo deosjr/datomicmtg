@@ -14,7 +14,13 @@
   (format "https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=%d&type=card" multiverseid))
 
 (defn cardimage [multiverseid]
-  (html5 [:div.card {:_ "on click toggle .tapped"} [:img {:src (imageurl multiverseid)}]]))
+  (html5 [:div.card [:img {:src (imageurl multiverseid)}]]))
+
+(defn stacktop [multiverseid]
+  (html5 [:div.card.stacktop [:img {:src (imageurl multiverseid)}]]))
+
+(defn cardheader [multiverseid]
+  (html5 [:div.card.header [:img {:src (imageurl multiverseid)}]]))
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
 (defn battlefield [player]
@@ -31,8 +37,12 @@
   (battlefield "Player1"))
 
 (defn graveyard [player]
-  (let [cards (mtg/zoneinfo player :graveyard [{:instance/card [:card/name]}])]
-    (html5 [:div.list [:ul (map #(-> [:li (get-in % [:instance/card :card/name])]) cards)]])))
+  (let [cards (mtg/zoneinfo player :graveyard [{:instance/card [:card/multiverseid]}])
+        rest (take (- (count cards) 1) cards)
+        last (last cards)]
+    (if (= 0 (count cards)) ""
+        (html5 [:div.list (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
+                (stacktop (get-in last [:instance/card :card/multiverseid]))]))))
 
 (comment
   (graveyard "Player1"))
@@ -55,7 +65,7 @@
               [:div.graveyard (graveyard player1)]]
              [:div.battlefields "battlefields"
               [:div.battlefield.opponent (battlefield player2)]
-              [:div.battlefield (battlefield player1)]]
+              [:div.battlefield {:_ "on click in .card tell it toggle .tapped"} (battlefield player1)]]
              [:div.stack "stack"]]])))
 
 (defroutes app-routes
