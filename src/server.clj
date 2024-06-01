@@ -47,6 +47,17 @@
 (comment
   (graveyard "Player1"))
 
+(defn stack []
+  (let [cards (mtg/mapmids (mtg/stack))
+        rest (take (- (count cards) 1) cards)
+        last (last cards)]
+    (if (= 0 (count cards)) ""
+        (html5 [:div.list (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
+                (stacktop (get-in last [:instance/card :card/multiverseid]))]))))
+
+(comment
+  (stack))
+
 (defn index []
   (let [player1 "Player1" player2 "Player2"]
     (html5 [:head
@@ -66,7 +77,7 @@
              [:div.battlefields "battlefields"
               [:div.battlefield.opponent (battlefield player2)]
               [:div.battlefield {:_ "on click in .card tell it toggle .tapped"} (battlefield player1)]]
-             [:div.stack "stack"]]])))
+             [:div.stack "stack" (stack)]]])))
 
 (defroutes app-routes
   (GET "/" [] (index))

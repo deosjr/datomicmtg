@@ -7,6 +7,7 @@
 
 (load "card")
 
+; todo: load from parsing mtg api
 (def first-cards  [{:card/name "Lava Spike"
                     :card/multiverseid 512313
                     :card/cost "R"
@@ -40,11 +41,6 @@
 
 (d/transact db/conn {:tx-data first-cards})
 
-(def all-cards-q '[:find ?e ?name
-                   :where [?e :card/name ?name]])
-
-(d/q all-cards-q (d/db db/conn))
-
 (load "player")
 
 (load "game")
@@ -60,8 +56,11 @@
                      :where [?e :player/name ?name] [?e :player/life ?life]])
 (d/q all-players-q (d/db db/conn))
 
-(def new-game [{:game/players [[:player/name "Player1"] [:player/name "Player2"]]
-                :game/activeplayer [:player/name "Player1"]
+(def player1 [:player/name "Player1"])
+(def player2 [:player/name "Player2"])
+
+(def new-game [{:game/players [player1 player2]
+                :game/activeplayer player1
                 :game/turn 1
                 :game/step :precombatmainphase}])
 
@@ -71,43 +70,30 @@
 
 (load "cardinstance")
 
-(def play-mountain [{:instance/card [:card/name "Mountain"]
-                     :instance/zone :battlefield
-                     :instance/controller [:player/name "Player1"]
-                     :instance/owner [:player/name "Player1"]}])
+(defn play-land [player cardname]
+  [{:instance/card [:card/name cardname]
+    :instance/zone :battlefield
+    :instance/controller player
+    :instance/owner player}])
 
-(d/transact db/conn {:tx-data play-mountain})
-(d/transact db/conn {:tx-data play-mountain})
-(d/transact db/conn {:tx-data play-mountain})
+(d/transact db/conn {:tx-data (play-land player1 "Mountain")})
+(d/transact db/conn {:tx-data (play-land player1 "Mountain")})
+(d/transact db/conn {:tx-data (play-land player1 "Mountain")})
 
-(def play-forest [{:instance/card [:card/name "Forest"]
-                   :instance/zone :battlefield
-                   :instance/controller [:player/name "Player2"]
-                   :instance/owner [:player/name "Player2"]}])
+(d/transact db/conn {:tx-data (play-land player2 "Forest")})
+(d/transact db/conn {:tx-data (play-land player2 "Forest")})
 
-(d/transact db/conn {:tx-data play-forest})
-(d/transact db/conn {:tx-data play-forest})
+; todo: nonlands use the stack
 
-(def play-ogre [{:instance/card [:card/name "Gray Ogre"]
-                 :instance/zone :battlefield
-                 :instance/controller [:player/name "Player1"]
-                 :instance/owner [:player/name "Player1"]}])
+(defn cast-spell [player cardname]
+  [{:instance/card [:card/name cardname]
+    :instance/zone :battlefield
+    :instance/controller player
+    :instance/owner player}])
 
-(d/transact db/conn {:tx-data play-ogre})
-
-(def play-giant [{:instance/card [:card/name "Hill Giant"]
-                  :instance/zone :battlefield
-                  :instance/controller [:player/name "Player1"]
-                  :instance/owner [:player/name "Player1"]}])
-
-(d/transact db/conn {:tx-data play-giant})
-
-(def play-bear [{:instance/card [:card/name "Grizzly Bears"]
-                 :instance/zone :battlefield
-                 :instance/controller [:player/name "Player2"]
-                 :instance/owner [:player/name "Player2"]}])
-
-(d/transact db/conn {:tx-data play-bear})
+(d/transact db/conn {:tx-data (cast-spell player1 "Gray Ogre")})
+(d/transact db/conn {:tx-data (cast-spell player1 "Hill Giant")})
+(d/transact db/conn {:tx-data (cast-spell player2 "Grizzly Bears")})
 
 ; ?e is the identifier of the card instance
 ; ?tx is the transaction id in which location was last set
@@ -146,20 +132,25 @@
 
 (d/transact db/conn {:tx-data play-lava-spike})
 
+; [eid] list to multiverseids
+(defn mapmids [eids]
+  (map #(d/pull (d/db db/conn) [{:instance/card [:card/multiverseid]}] (first %)) eids))
+
 (def stack-q '[:find ?e
                :in $
                :where
                [?e :instance/zone :stack]])
-(def stack (d/q stack-q (d/db db/conn)))
+(defn stack []
+  (d/q stack-q (d/db db/conn)))
 
 (def card-to-resolve (d/pull (d/db db/conn) [{:instance/card [:card/name :card/rules]}
                                              {:effect/target [:player/name]}]
-                             (ffirst stack)))
+                             (ffirst (stack))))
 (def cardname (get-in card-to-resolve [:instance/card :card/name]))
 (def targetname (get-in card-to-resolve [:effect/target :player/name]))
 
 ; todo: db/cas from stack?
-(def resolve-card [:db/add (ffirst stack) :instance/zone :graveyard])
+(def resolve-card [:db/add (ffirst (stack)) :instance/zone :graveyard])
 
 ; merge effects and make a single transaction
 (def result [resolve-card (effect/damage targetname 3)])

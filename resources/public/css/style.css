@@ -23,6 +23,7 @@ img {
 
 .card.header {
 	height: 3vh;
+	margin-top: -1vh;
 }
 
 .card.header img {

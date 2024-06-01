@@ -17,6 +17,7 @@
                      [?e :player/life ?life]])
 
 ; assumes player target for now
+; target should already be an eid, so we should just use a d/pull here
 (defn damage [target amount]
   (let [[[e currentlife]] (d/q player-life-q (d/db db/conn) target)
         newlife (- currentlife amount)]
