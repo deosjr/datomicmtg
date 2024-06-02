@@ -2,10 +2,6 @@
 	background-color: red;
 }
 
-img {
-	height: 15vh;
-}
-
 .card {
 	height: 15vh;
 	clip-path: inset(0 0 0 0 round 6%);
@@ -18,16 +14,23 @@ img {
 }
 
 .card.stacktop {
-	margin-top: -1vh;
+	margin-top: -14vh;
+}
+
+.card.firstheader {
+	height: 3vh;
 }
 
 .card.header {
-	height: 3vh;
-	margin-top: -1vh;
+	margin-top: -14vh;
 }
 
 .card.header img {
 	clip-path: xywh(0 0 100% 20%);
+}
+
+.preview {
+	height: 30vh;
 }
 
 .mtg {
@@ -36,7 +39,6 @@ img {
 }
 
 .players {
-	width: 10%;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;

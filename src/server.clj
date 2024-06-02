@@ -14,13 +14,13 @@
   (format "https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=%d&type=card" multiverseid))
 
 (defn cardimage [multiverseid]
-  (html5 [:div.card [:img {:src (imageurl multiverseid)}]]))
+  (html5 [:img.card {:src (imageurl multiverseid)}]))
 
 (defn stacktop [multiverseid]
-  (html5 [:div.card.stacktop [:img {:src (imageurl multiverseid)}]]))
+  (html5 [:img.card.stacktop {:src (imageurl multiverseid)}]))
 
 (defn cardheader [multiverseid]
-  (html5 [:div.card.header [:img {:src (imageurl multiverseid)}]]))
+  (html5 [:img.card.header {:src (imageurl multiverseid)}]))
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
 (defn battlefield [player]
@@ -67,9 +67,10 @@
             (include-js "https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js")]
            [:body
             [:h1 {:class "button" :hx-get "/test"} "MTG"]
-            [:div.mtg
+            [:div.mtg {:_ "on mouseover in .card put its src into .preview.src"}
              [:div.players "players"
               [:div.player player2]
+              [:img.preview]
               [:div.player player1]]
              [:div.graveyards "graveyards"
               [:div.graveyard (graveyard player2)]
