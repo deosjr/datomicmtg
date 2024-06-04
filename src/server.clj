@@ -16,11 +16,25 @@
 (defn cardimage [multiverseid]
   (html5 [:img.card {:src (imageurl multiverseid)}]))
 
+(defn firstheader [multiverseid]
+  (html5 [:img.card.firstheader {:src (imageurl multiverseid)}]))
+(defn cardheader [multiverseid]
+  (html5 [:img.card.header {:src (imageurl multiverseid)}]))
 (defn stacktop [multiverseid]
   (html5 [:img.card.stacktop {:src (imageurl multiverseid)}]))
 
-(defn cardheader [multiverseid]
-  (html5 [:img.card.header {:src (imageurl multiverseid)}]))
+; cards is a list of multiverseids
+(defn cardlist [cards]
+  (let [head (first cards)
+        rest (drop 1 (take (- (count cards) 1) cards))
+        last (last cards)]
+    (if (= 0 (count cards)) ""
+        (if (= 1 (count cards)) (html5 [:div.list (cardimage (get-in last [:instance/card :card/multiverseid]))])
+            (html5 [:div.list
+                    (firstheader (get-in head [:instance/card :card/multiverseid]))
+                    (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
+                    (stacktop (get-in last [:instance/card :card/multiverseid]))])))))
+
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
 (defn battlefield [player]
@@ -37,23 +51,13 @@
   (battlefield "Player1"))
 
 (defn graveyard [player]
-  (let [cards (mtg/zoneinfo player :graveyard [{:instance/card [:card/multiverseid]}])
-        rest (take (- (count cards) 1) cards)
-        last (last cards)]
-    (if (= 0 (count cards)) ""
-        (html5 [:div.list (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
-                (stacktop (get-in last [:instance/card :card/multiverseid]))]))))
+  (cardlist (mtg/zoneinfo player :graveyard [{:instance/card [:card/multiverseid]}])))
 
 (comment
   (graveyard "Player1"))
 
 (defn stack []
-  (let [cards (mtg/mapmids (mtg/stack))
-        rest (take (- (count cards) 1) cards)
-        last (last cards)]
-    (if (= 0 (count cards)) ""
-        (html5 [:div.list (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
-                (stacktop (get-in last [:instance/card :card/multiverseid]))]))))
+  (cardlist (mtg/mapmids (mtg/stack))))
 
 (comment
   (stack))
