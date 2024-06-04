@@ -2,7 +2,7 @@
   (:require [clojure.core.async :refer [go]]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.resource :refer [wrap-resource]]
-            [ring.util.response :refer [resource-response]]
+            [ring.util.response :refer [redirect]]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :as route]
             [hiccup.page :refer [html5 include-css include-js]]
@@ -14,14 +14,14 @@
   (format "https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=%d&type=card" multiverseid))
 
 (defn cardimage [multiverseid]
-  (html5 [:img.card {:src (imageurl multiverseid)}]))
+  [:img.card {:src (imageurl multiverseid)}])
 
 (defn firstheader [multiverseid]
-  (html5 [:img.card.firstheader {:src (imageurl multiverseid)}]))
+  [:img.card.firstheader {:src (imageurl multiverseid)}])
 (defn cardheader [multiverseid]
-  (html5 [:img.card.header {:src (imageurl multiverseid)}]))
+  [:img.card.header {:src (imageurl multiverseid)}])
 (defn stacktop [multiverseid]
-  (html5 [:img.card.stacktop {:src (imageurl multiverseid)}]))
+  [:img.card.stacktop {:src (imageurl multiverseid)}])
 
 ; cards is a list of multiverseids
 (defn cardlist [cards]
@@ -29,11 +29,11 @@
         rest (drop 1 (take (- (count cards) 1) cards))
         last (last cards)]
     (if (= 0 (count cards)) ""
-        (if (= 1 (count cards)) (html5 [:div.list (cardimage (get-in last [:instance/card :card/multiverseid]))])
-            (html5 [:div.list
-                    (firstheader (get-in head [:instance/card :card/multiverseid]))
-                    (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
-                    (stacktop (get-in last [:instance/card :card/multiverseid]))])))))
+        (if (= 1 (count cards)) [:div.list (cardimage (get-in last [:instance/card :card/multiverseid]))]
+            [:div.list
+             (firstheader (get-in head [:instance/card :card/multiverseid]))
+             (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
+             (stacktop (get-in last [:instance/card :card/multiverseid]))]))))
 
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
@@ -57,7 +57,10 @@
   (graveyard "Player1"))
 
 (defn stack []
-  (cardlist (mtg/mapmids (mtg/stack))))
+  (html5 [:button {:hx-get "/resolve"
+                   :hx-select ".mtg"
+                   :hx-target "closest .mtg"
+                   :hx-swap "outerHTML"} 'RESOLVE] (cardlist (mtg/mapmids (mtg/stack)))))
 
 (comment
   (stack))
@@ -74,7 +77,7 @@
             [:div.mtg {:_ "on mouseover in .card put its src into .preview.src"}
              [:div.players "players"
               [:div.player player2]
-              [:img.preview]
+              [:img.preview {:src (imageurl 0)}]
               [:div.player player1]]
              [:div.graveyards "graveyards"
               [:div.graveyard (graveyard player2)]
@@ -84,9 +87,11 @@
               [:div.battlefield {:_ "on click in .card tell it toggle .tapped"} (battlefield player1)]]
              [:div.stack "stack" (stack)]]])))
 
+(defn resolve-stack [] (mtg/resolve-stack) (redirect "/"))
+
 (defroutes app-routes
   (GET "/" [] (index))
-  (GET "/res" [] (resource-response "index.html"))
+  (GET "/resolve" [] (resolve-stack))
   (GET "/test" [] (html5 [:h1 "You got it"]))
   (route/not-found (html5 [:h1 "Page not found"])))
 

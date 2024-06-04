@@ -162,4 +162,10 @@
 
 (zoneinfo "Player1" :graveyard [{:instance/card [:card/name]}])
 
+(defn resolve-stack []
+  (if (= 0 (count (stack))) nil
+      (let [card (last (first (stack)))
+            movetx [:db/add card :instance/zone :graveyard]]
+        (d/transact db/conn {:tx-data [movetx]}))))
+
 "mtg db loaded"
