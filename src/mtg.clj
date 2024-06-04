@@ -83,11 +83,9 @@
 (d/transact db/conn {:tx-data (play-land player2 "Forest")})
 (d/transact db/conn {:tx-data (play-land player2 "Forest")})
 
-; todo: nonlands use the stack
-
 (defn cast-spell [player cardname]
   [{:instance/card [:card/name cardname]
-    :instance/zone :battlefield
+    :instance/zone :stack
     :instance/controller player
     :instance/owner player}])
 
@@ -123,6 +121,31 @@
 (filter #(has-type? :land %)
         (zoneinfo "Player1" :battlefield [{:instance/card [:card/name {:card/type [:db/ident]}]}]))
 
+; [eid] list to multiverseids
+(defn mapmids [eids]
+  (map #(d/pull (d/db db/conn) [{:instance/card [:card/multiverseid]}]  %) eids))
+
+(def stack-q '[:find ?e ?tx
+               :in $
+               :where
+               [?e :instance/zone :stack ?tx]])
+(defn stack []
+  (map first (sort-by second (d/q stack-q (d/db db/conn)))))
+
+(defn resolve-stack []
+  (if (= 0 (count (stack))) nil
+      (let [card (last (stack))
+            types (d/pull (d/db db/conn) [{:instance/card [:card/name {:card/type [:db/ident]}]}] card)
+            ; todo: effects!
+            zone (if (or (has-type? :instant types) (has-type? :sorcery types)) :graveyard :battlefield)
+            movetx [:db/add card :instance/zone zone]]
+        (d/transact db/conn {:tx-data [movetx]}))))
+
+; resolve the 3 creatures we put on the stack earlier...
+(resolve-stack)
+(resolve-stack)
+(resolve-stack)
+
 (def play-lava-spike [{:instance/card [:card/name "Lightning Bolt"]
                        :instance/zone :stack
                        :effect/target [:player/name "Player2"]
@@ -130,17 +153,6 @@
                        :instance/owner [:player/name "Player1"]}])
 
 (d/transact db/conn {:tx-data play-lava-spike})
-
-; [eid] list to multiverseids
-(defn mapmids [eids]
-  (map #(d/pull (d/db db/conn) [{:instance/card [:card/multiverseid]}]  %) eids))
-
-(def stack-q '[:find ?e
-               :in $
-               :where
-               [?e :instance/zone :stack]])
-(defn stack []
-  (map first (d/q stack-q (d/db db/conn))))
 
 (def card-to-resolve (d/pull (d/db db/conn) [{:instance/card [:card/name :card/rules]}
                                              {:effect/target [:player/name]}]
@@ -159,14 +171,5 @@
 (d/q zone-q (d/db db/conn) "Player1" :graveyard)
 
 (zoneinfo "Player1" :graveyard [{:instance/card [:card/name]}])
-
-(defn resolve-stack []
-  (if (= 0 (count (stack))) nil
-      (let [card (last (stack))
-            type (get-in (d/pull (d/db db/conn) [{:instance/card [:card/type]}] card) [:instance/card :card/type])
-            ; todo: effects!
-            zone (if (or (= type :instant) (= type :sorcery)) :graveyard :battlefield)
-            movetx [:db/add card :instance/zone zone]]
-        (d/transact db/conn {:tx-data [movetx]}))))
 
 "mtg db loaded"

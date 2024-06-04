@@ -1,3 +1,7 @@
+body {
+	--cardoverlap: -13vh;
+}
+
 .button {
 	background-color: red;
 }
@@ -18,12 +22,12 @@
 }
 
 .card.header {
-	margin-top: -13vh;
+	margin-top: var(--cardoverlap);
 	/* clip-path: xywh(0 0 100% 20%); */
 }
 
 .card.stacktop {
-	margin-top: -13vh;
+	margin-top: var(--cardoverlap);
 }
 
 .preview {
