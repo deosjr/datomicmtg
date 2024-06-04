@@ -8,11 +8,11 @@
 (load "card")
 
 ; todo: load from parsing mtg api
-(def first-cards  [{:card/name "Lava Spike"
-                    :card/multiverseid 512313
+(def first-cards  [{:card/name "Lightning Bolt"
+                    :card/multiverseid 209
                     :card/cost "R"
-                    :card/type :sorcery
-                    :card/rules "Lava Spike deals 3 damage to target player."}
+                    :card/type :instant
+                    :card/rules "Lightning Bolt deals 3 damage to any target."}
 
                    {:card/name "Gray Ogre"
                     :card/multiverseid 204
@@ -104,7 +104,6 @@
               [?player :player/name ?name]
               [?e :instance/controller ?player]
               [?e :instance/zone ?zone ?tx]])
-(def cards (sort-by second (d/q zone-q (d/db db/conn) "Player1" :battlefield)))
 
 (defn cardinfo [eid]
   (d/pull (d/db db/conn) [{:instance/card [:card/name :card/type]}
@@ -124,7 +123,7 @@
 (filter #(has-type? :land %)
         (zoneinfo "Player1" :battlefield [{:instance/card [:card/name {:card/type [:db/ident]}]}]))
 
-(def play-lava-spike [{:instance/card [:card/name "Lava Spike"]
+(def play-lava-spike [{:instance/card [:card/name "Lightning Bolt"]
                        :instance/zone :stack
                        :effect/target [:player/name "Player2"]
                        :instance/controller [:player/name "Player1"]
@@ -134,23 +133,22 @@
 
 ; [eid] list to multiverseids
 (defn mapmids [eids]
-  (map #(d/pull (d/db db/conn) [{:instance/card [:card/multiverseid]}] (first %)) eids))
+  (map #(d/pull (d/db db/conn) [{:instance/card [:card/multiverseid]}]  %) eids))
 
 (def stack-q '[:find ?e
                :in $
                :where
                [?e :instance/zone :stack]])
 (defn stack []
-  (d/q stack-q (d/db db/conn)))
+  (map first (d/q stack-q (d/db db/conn))))
 
 (def card-to-resolve (d/pull (d/db db/conn) [{:instance/card [:card/name :card/rules]}
                                              {:effect/target [:player/name]}]
-                             (ffirst (stack))))
-(def cardname (get-in card-to-resolve [:instance/card :card/name]))
+                             (first (stack))))
 (def targetname (get-in card-to-resolve [:effect/target :player/name]))
 
 ; todo: db/cas from stack?
-(def resolve-card [:db/add (ffirst (stack)) :instance/zone :graveyard])
+(def resolve-card [:db/add (first (stack)) :instance/zone :graveyard])
 
 ; merge effects and make a single transaction
 (def result [resolve-card (effect/damage targetname 3)])
@@ -164,8 +162,11 @@
 
 (defn resolve-stack []
   (if (= 0 (count (stack))) nil
-      (let [card (last (first (stack)))
-            movetx [:db/add card :instance/zone :graveyard]]
+      (let [card (last (stack))
+            type (get-in (d/pull (d/db db/conn) [{:instance/card [:card/type]}] card) [:instance/card :card/type])
+            ; todo: effects!
+            zone (if (or (= type :instant) (= type :sorcery)) :graveyard :battlefield)
+            movetx [:db/add card :instance/zone zone]]
         (d/transact db/conn {:tx-data [movetx]}))))
 
 "mtg db loaded"

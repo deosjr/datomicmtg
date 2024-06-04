@@ -14,16 +14,16 @@
 }
 
 .card.firstheader {
-	clip-path: xywh(0 0 100% 20%);
+	/* clip-path: xywh(0 0 100% 20%); */
 }
 
 .card.header {
-	margin-top: -14vh;
-	clip-path: xywh(0 0 100% 20%);
+	margin-top: -13vh;
+	/* clip-path: xywh(0 0 100% 20%); */
 }
 
 .card.stacktop {
-	margin-top: -14vh;
+	margin-top: -13vh;
 }
 
 .preview {
@@ -81,5 +81,10 @@
 }
 
 .stack {
+	flex-direction: column;
+}
+
+.list {
+	display: flex;
 	flex-direction: column;
 }

@@ -20,7 +20,10 @@
 
                   {:db/ident :creature}
                   {:db/ident :land}
+                  {:db/ident :artifact}
+                  {:db/ident :enchantment}
                   {:db/ident :sorcery}
+                  {:db/ident :instant}
 
                   {:db/ident :card/rules
                    :db/valueType :db.type/string
