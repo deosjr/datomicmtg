@@ -56,6 +56,13 @@
                      :where [?e :player/name ?name] [?e :player/life ?life]])
 (d/q all-players-q (d/db db/conn))
 
+(def player-info-q '[:find ?life
+                     :in $ ?name
+                     :where [?e :player/name ?name] [?e :player/life ?life]])
+
+(defn player-info [name]
+  (d/q player-info-q (d/db db/conn) name))
+
 (def player1 [:player/name "Player1"])
 (def player2 [:player/name "Player2"])
 
@@ -76,6 +83,7 @@
     :instance/controller player
     :instance/owner player}])
 
+(d/transact db/conn {:tx-data (play-land player1 "Mountain")})
 (d/transact db/conn {:tx-data (play-land player1 "Mountain")})
 (d/transact db/conn {:tx-data (play-land player1 "Mountain")})
 (d/transact db/conn {:tx-data (play-land player1 "Mountain")})

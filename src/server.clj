@@ -65,6 +65,10 @@
 (comment
   (stack))
 
+(defn player [name]
+  (let [[[lifetotal]] (mtg/player-info name)]
+    [:div name [:div.lifetotal lifetotal]]))
+
 (defn index []
   (let [player1 "Player1" player2 "Player2"]
     (html5 [:head
@@ -76,9 +80,9 @@
             [:h1 {:class "button" :hx-get "/test"} "MTG"]
             [:div.mtg {:_ "on mouseover in .card put its src into .preview.src"}
              [:div.players "players"
-              [:div.player player2]
+              [:div.player (player player2)]
               [:img.preview {:src (imageurl 0)}]
-              [:div.player player1]]
+              [:div.player (player player1)]]
              [:div.graveyards "graveyards"
               [:div.graveyard (graveyard player2)]
               [:div.graveyard (graveyard player1)]]
