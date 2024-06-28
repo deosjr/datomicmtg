@@ -117,8 +117,8 @@
 
 (defn zoneinfo [player zone selectors]
   (let [conn (d/db db/conn)
-        cards (sort-by second (d/q zone-q conn player zone))]
-    (map #(d/pull conn selectors %) (map first cards))))
+        card-eids (map first (sort-by second (d/q zone-q conn player zone)))]
+    (map #(merge {:instance/eid %} (d/pull conn selectors %)) card-eids)))
 
 (zoneinfo "Player1" :battlefield [{:instance/card [:card/name {:card/type [:db/ident]}]}])
 

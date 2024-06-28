@@ -13,8 +13,8 @@
 (defn imageurl [multiverseid]
   (format "https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=%d&type=card" multiverseid))
 
-(defn cardimage [multiverseid]
-  [:img.card {:src (imageurl multiverseid)}])
+(defn cardimage [eid multiverseid]
+  [:img.card {:id eid :src (imageurl multiverseid)}])
 
 (defn firstheader [multiverseid]
   [:img.card.firstheader {:src (imageurl multiverseid)}])
@@ -29,7 +29,7 @@
         rest (drop 1 (take (- (count cards) 1) cards))
         last (last cards)]
     (if (= 0 (count cards)) ""
-        (if (= 1 (count cards)) [:div.list (cardimage (get-in last [:instance/card :card/multiverseid]))]
+        (if (= 1 (count cards)) [:div.list (cardimage (get-in last [:instance/eid]) (get-in last [:instance/card :card/multiverseid]))]
             [:div.list
              (firstheader (get-in head [:instance/card :card/multiverseid]))
              (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
@@ -43,9 +43,9 @@
         permanents (remove #(mtg/has-type? :land %) cards)]
     (html5
      [:div.permanents
-      (map #(cardimage (get-in % [:instance/card :card/multiverseid])) permanents)]
+      (map #(cardimage (get-in % [:instance/eid]) (get-in % [:instance/card :card/multiverseid])) permanents)]
      [:div.lands
-      (map #(cardimage (get-in % [:instance/card :card/multiverseid])) lands)])))
+      (map #(cardimage (get-in % [:instance/eid]) (get-in % [:instance/card :card/multiverseid])) lands)])))
 
 (comment
   (battlefield "Player1"))
