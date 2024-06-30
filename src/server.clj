@@ -16,24 +16,9 @@
 (defn cardimage [eid multiverseid]
   [:img.card {:id eid :src (imageurl multiverseid)}])
 
-(defn firstheader [multiverseid]
-  [:img.card.firstheader {:src (imageurl multiverseid)}])
-(defn cardheader [multiverseid]
-  [:img.card.header {:src (imageurl multiverseid)}])
-(defn stacktop [multiverseid]
-  [:img.card.stacktop {:src (imageurl multiverseid)}])
-
 ; cards is a list of multiverseids
 (defn cardlist [cards]
-  (let [head (first cards)
-        rest (drop 1 (take (- (count cards) 1) cards))
-        last (last cards)]
-    (if (= 0 (count cards)) ""
-        (if (= 1 (count cards)) [:div.list (cardimage (get-in last [:instance/eid]) (get-in last [:instance/card :card/multiverseid]))]
-            [:div.list
-             (firstheader (get-in head [:instance/card :card/multiverseid]))
-             (map #(cardheader (get-in % [:instance/card :card/multiverseid])) rest)
-             (stacktop (get-in last [:instance/card :card/multiverseid]))]))))
+  [:div.list (map #(cardimage (get-in % [:instance/eid]) (get-in % [:instance/card :card/multiverseid])) cards)])
 
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way

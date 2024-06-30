@@ -156,13 +156,16 @@
 (resolve-stack)
 (resolve-stack)
 
-(def play-lava-spike [{:instance/card [:card/name "Lightning Bolt"]
-                       :instance/zone :stack
-                       :effect/target [:player/name "Player2"]
-                       :instance/controller [:player/name "Player1"]
-                       :instance/owner [:player/name "Player1"]}])
+(defn play-lava-spike [target]
+  [{:instance/card [:card/name "Lightning Bolt"]
+    :instance/zone :stack
+    :effect/target target
+    :instance/controller player1
+    :instance/owner player1}])
 
-(d/transact db/conn {:tx-data play-lava-spike})
+(d/transact db/conn {:tx-data (play-lava-spike player2)})
+(d/transact db/conn {:tx-data (play-lava-spike player2)})
+(d/transact db/conn {:tx-data (play-lava-spike player2)})
 
 (def card-to-resolve (d/pull (d/db db/conn) [{:instance/card [:card/name :card/rules]}
                                              {:effect/target [:player/name]}]
