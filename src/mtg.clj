@@ -56,12 +56,14 @@
                      :where [?e :player/name ?name] [?e :player/life ?life]])
 (d/q all-players-q (d/db db/conn))
 
-(def player-info-q '[:find ?life
+(def player-info-q '[:find ?e ?life
                      :in $ ?name
                      :where [?e :player/name ?name] [?e :player/life ?life]])
 
 (defn player-info [name]
   (d/q player-info-q (d/db db/conn) name))
+
+(player-info "Player1")
 
 (def player1 [:player/name "Player1"])
 (def player2 [:player/name "Player2"])

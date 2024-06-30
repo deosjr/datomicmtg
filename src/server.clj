@@ -66,8 +66,8 @@
   (stack))
 
 (defn player [name]
-  (let [[[lifetotal]] (mtg/player-info name)]
-    [:div name [:div.lifetotal lifetotal]]))
+  (let [[[eid lifetotal]] (mtg/player-info name)]
+    [:div {:id eid} name [:div.lifetotal lifetotal]]))
 
 (defn index []
   (let [player1 "Player1" player2 "Player2"]
