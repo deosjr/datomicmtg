@@ -13,13 +13,13 @@
 (defn imageurl [multiverseid]
   (format "https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=%d&type=card" multiverseid))
 
-(defn cardimage [eid multiverseid]
-  [:img.cardimg {:id eid :src (imageurl multiverseid)}])
+(defn cardimage [multiverseid]
+  [:img.cardimg {:src (imageurl multiverseid)}])
 
 (defn permanent [cardinstance]
   (let [eid (get-in cardinstance [:instance/eid])
         mid (get-in cardinstance [:instance/card :card/multiverseid])]
-    [:div.card (cardimage eid mid)]))
+    [:div.card {:id eid} (cardimage mid)]))
 
 ; cards is a list of cardinstances with eid and mid
 (defn cardlist [cards]
