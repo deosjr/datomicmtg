@@ -7,9 +7,12 @@ body {
 }
 
 .card {
+	transition: all linear 250ms;
+}
+
+.card img {
 	height: 15vh;
 	clip-path: inset(0 0 0 0 round 6%);
-	transition: all linear 250ms;
 }
 
 .card.tapped {
@@ -91,15 +94,15 @@ body {
 	flex-direction: column;
 }
 
-.list img.card {
+.list .card {
 	margin-top: var(--cardoverlap);
 	clip-path: xywh(0 0 100% 20%);
 }
 
-.list img.card:first-child {
+.list .card:first-child {
 	margin-top: 0;
 }
 
-.list img.card:last-child {
+.list .card:last-child {
 	clip-path: inset(0 0 0 0 round 6%);
 }

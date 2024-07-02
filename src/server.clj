@@ -14,12 +14,16 @@
   (format "https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=%d&type=card" multiverseid))
 
 (defn cardimage [eid multiverseid]
-  [:img.card {:id eid :src (imageurl multiverseid)}])
+  [:img.cardimg {:id eid :src (imageurl multiverseid)}])
 
-; cards is a list of multiverseids
+(defn permanent [cardinstance]
+  (let [eid (get-in cardinstance [:instance/eid])
+        mid (get-in cardinstance [:instance/card :card/multiverseid])]
+    [:div.card (cardimage eid mid)]))
+
+; cards is a list of cardinstances with eid and mid
 (defn cardlist [cards]
-  [:div.list (map #(cardimage (get-in % [:instance/eid]) (get-in % [:instance/card :card/multiverseid])) cards)])
-
+  [:div.list (map permanent cards)])
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
 (defn battlefield [player]
@@ -27,10 +31,8 @@
         lands (filter #(mtg/has-type? :land %) cards)
         permanents (remove #(mtg/has-type? :land %) cards)]
     (html5
-     [:div.permanents
-      (map #(cardimage (get-in % [:instance/eid]) (get-in % [:instance/card :card/multiverseid])) permanents)]
-     [:div.lands
-      (map #(cardimage (get-in % [:instance/eid]) (get-in % [:instance/card :card/multiverseid])) lands)])))
+     [:div.permanents (map permanent permanents)]
+     [:div.lands (map permanent lands)])))
 
 (comment
   (battlefield "Player1"))
@@ -63,7 +65,7 @@
             (include-js "https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js")]
            [:body
             [:h1 {:class "button" :hx-get "/test"} "MTG"]
-            [:div.mtg {:_ "on mouseover in .card put its src into .preview.src"}
+            [:div.mtg {:_ "on mouseover in .cardimg put its src into .preview.src"}
              [:div.players "players"
               [:div.player (player player2)]
               [:img.preview {:src (imageurl 0)}]
