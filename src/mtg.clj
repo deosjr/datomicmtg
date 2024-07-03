@@ -149,7 +149,7 @@
 
 (defn resolve-stack []
   (if (= 0 (count (stack []))) nil
-      (let [card (last (stack []))
+      (let [card (get-in (last (stack [])) [:instance/eid])
             types (d/pull (d/db db/conn) [{:instance/card [:card/name {:card/type [:db/ident]}]}] card)
             ; todo: effects!
             zone (if (or (has-type? :instant types) (has-type? :sorcery types)) :graveyard :battlefield)
@@ -174,11 +174,11 @@
 
 (def card-to-resolve (d/pull (d/db db/conn) [{:instance/card [:card/name :card/rules]}
                                              {:effect/target [:player/name]}]
-                             (first (stack))))
+                             (first (stack []))))
 (def targetname (get-in card-to-resolve [:effect/target :player/name]))
 
 ; todo: db/cas from stack?
-(def resolve-card [:db/add (first (stack)) :instance/zone :graveyard])
+(def resolve-card [:db/add (first (stack [])) :instance/zone :graveyard])
 
 ; merge effects and make a single transaction
 (def result [resolve-card (effect/damage targetname 3)])
