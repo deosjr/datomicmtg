@@ -17,16 +17,16 @@
                    {:card/name "Gray Ogre"
                     :card/multiverseid 204
                     :card/cost "2R"
-                    :card/type :creature}
-                   ; :creature/power 2
-                   ; :creature/toughness 2
+                    :card/type :creature
+                    :creature/power 2
+                    :creature/toughness 2}
 
                    {:card/name "Hill Giant"
                     :card/multiverseid 205
                     :card/cost "3R"
-                    :card/type :creature}
-                   ; :creature/power 3
-                   ; :creature/toughness 3
+                    :card/type :creature
+                    :creature/power 3
+                    :creature/toughness 3}
 
                    {:card/name "Mountain"
                     :card/multiverseid 291
@@ -36,9 +36,9 @@
                    {:card/name "Grizzly Bears"
                     :card/multiverseid 155
                     :card/cost "1G"
-                    :card/type :creature}
-                   ; :creature/power 2
-                   ; :creature/toughness 2
+                    :card/type :creature
+                    :creature/power 2
+                    :creature/toughness 2}
 
                    {:card/name "Forest"
                     :card/multiverseid 289

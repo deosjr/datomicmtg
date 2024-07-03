@@ -35,6 +35,16 @@
                    :db/valueType :db.type/long
                    :db/cardinality :db.cardinality/one
                    :db/unique :db.unique/identity
-                   :db/doc "The multiverseid of the card on Wizard's Gatherer web page"}])
+                   :db/doc "The multiverseid of the card on Wizard's Gatherer web page"}
+
+                  ; creatures
+                  {:db/ident :creature/power
+                   :db/valueType :db.type/long
+                   :db/cardinality :db.cardinality/one
+                   :db/doc "The power of the creature"}
+                  {:db/ident :creature/toughness
+                   :db/valueType :db.type/long
+                   :db/cardinality :db.cardinality/one
+                   :db/doc "The power of the creature"}])
 
 (d/transact db/conn {:tx-data card-schema})

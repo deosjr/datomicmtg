@@ -18,8 +18,11 @@
 
 (defn permanent [cardinstance]
   (let [eid (get-in cardinstance [:instance/eid])
-        mid (get-in cardinstance [:instance/card :card/multiverseid])]
-    [:div.card {:id eid} (cardimage mid)]))
+        mid (get-in cardinstance [:instance/card :card/multiverseid])
+        power (get-in cardinstance [:instance/card :creature/power])
+        toughness (get-in cardinstance [:instance/card :creature/toughness])
+        stats (format "%d/%d" power toughness)]
+    [:div.card {:id eid} (cardimage mid) (if (some? power) [:div.stats stats] "")]))
 
 ; cards is a list of cardinstances with eid and mid
 (defn cardlist [cards]
@@ -27,7 +30,7 @@
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
 (defn battlefield [player]
-  (let [cards (mtg/zoneinfo player :battlefield [{:instance/card [:card/multiverseid {:card/type [:db/ident]}]}])
+  (let [cards (mtg/zoneinfo player :battlefield [{:instance/card [:card/multiverseid {:card/type [:db/ident]} :creature/power :creature/toughness]}])
         lands (filter #(mtg/has-type? :land %) cards)
         permanents (remove #(mtg/has-type? :land %) cards)]
     (html5
