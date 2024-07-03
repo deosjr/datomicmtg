@@ -50,7 +50,8 @@
   (html5 [:button {:hx-get "/resolve"
                    :hx-select ".mtg"
                    :hx-target "closest .mtg"
-                   :hx-swap "outerHTML"} 'RESOLVE] (cardlist (mtg/mapmids (mtg/stack)))))
+                   :hx-swap "outerHTML"} 'RESOLVE]
+         (cardlist (mtg/stack [{:instance/card [:card/multiverseid]}]))))
 
 (comment
   (stack))

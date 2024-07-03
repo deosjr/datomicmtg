@@ -137,20 +137,19 @@
 (filter #(has-type? :land %)
         (zoneinfo "Player1" :battlefield [{:instance/card [:card/name {:card/type [:db/ident]}]}]))
 
-; [eid] list to multiverseids
-(defn mapmids [eids]
-  (map #(d/pull (d/db db/conn) [{:instance/card [:card/multiverseid]}]  %) eids))
-
 (def stack-q '[:find ?e ?tx
                :in $
                :where
                [?e :instance/zone :stack ?tx]])
-(defn stack []
-  (map first (sort-by second (d/q stack-q (d/db db/conn)))))
+
+(defn stack [selectors]
+  (let [conn (d/db db/conn)
+        card-eids (map first (sort-by second (d/q stack-q conn)))]
+    (map #(merge {:instance/eid %} (d/pull conn selectors %)) card-eids)))
 
 (defn resolve-stack []
-  (if (= 0 (count (stack))) nil
-      (let [card (last (stack))
+  (if (= 0 (count (stack []))) nil
+      (let [card (last (stack []))
             types (d/pull (d/db db/conn) [{:instance/card [:card/name {:card/type [:db/ident]}]}] card)
             ; todo: effects!
             zone (if (or (has-type? :instant types) (has-type? :sorcery types)) :graveyard :battlefield)
