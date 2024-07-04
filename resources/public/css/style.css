@@ -49,6 +49,10 @@ body {
 	border-style: solid;
 }
 
+.highlighted {
+	background-color:red;
+}
+
 .lifetotal {
 	font-size: 5vh;
 }

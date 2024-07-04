@@ -16,13 +16,15 @@
 (defn cardimage [multiverseid]
   [:img.cardimg {:src (imageurl multiverseid)}])
 
+; todo: permanent is overused, also for sorcery cards on stack for example
 (defn permanent [cardinstance]
   (let [eid (get-in cardinstance [:instance/eid])
         mid (get-in cardinstance [:instance/card :card/multiverseid])
+        target (get-in cardinstance [:effect/target :db/id])
         power (get-in cardinstance [:instance/card :creature/power])
         toughness (get-in cardinstance [:instance/card :creature/toughness])
         stats (format "%d/%d" power toughness)]
-    [:div.card {:id eid} (cardimage mid) (if (some? power) [:div.stats stats] "")]))
+    [:div.card {:id eid :target target :_ (if (some? target) (format "on mouseover toggle .highlighted on <div[id=\"%d\"]/> until mouseout" target) "")} (cardimage mid) (if (some? power) [:div.stats stats] "")]))
 
 ; cards is a list of cardinstances with eid and mid
 (defn cardlist [cards]
@@ -51,7 +53,7 @@
                    :hx-select ".mtg"
                    :hx-target "closest .mtg"
                    :hx-swap "outerHTML"} 'RESOLVE]
-         (cardlist (mtg/stack [{:instance/card [:card/multiverseid]}]))))
+         (cardlist (mtg/stack [{:instance/card [:card/multiverseid]} :effect/target]))))
 
 (comment
   (stack))
