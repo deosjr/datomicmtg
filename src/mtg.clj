@@ -99,11 +99,18 @@
 (d/transact db/conn {:tx-data (play-land player2 "Forest")})
 (d/transact db/conn {:tx-data (play-land player2 "Forest")})
 
-(defn cast-spell [player cardname]
-  [{:instance/card [:card/name cardname]
-    :instance/zone :stack
-    :instance/controller player
-    :instance/owner player}])
+(defn cast-spell
+  ([player cardname]
+   [{:instance/card [:card/name cardname]
+     :instance/zone :stack
+     :instance/controller player
+     :instance/owner player}])
+  ([player cardname target]
+   [{:instance/card [:card/name cardname]
+     :instance/zone :stack
+     :effect/target target
+     :instance/controller player
+     :instance/owner player}]))
 
 (d/transact db/conn {:tx-data (cast-spell player1 "Gray Ogre")})
 (d/transact db/conn {:tx-data (cast-spell player1 "Hill Giant")})
@@ -147,47 +154,31 @@
         card-eids (map first (sort-by second (d/q stack-q conn)))]
     (map #(merge {:instance/eid %} (d/pull conn selectors %)) card-eids)))
 
+; todo: hardcoded lightning bolt effect if there is a target
+(defn effects [cardeid defaulttx]
+  (let [{{target :db/id} :effect/target} (d/pull (d/db db/conn) [:effect/target] cardeid)]
+    (if (some? target) (cons (effect/damage target 3) defaulttx) defaulttx)))
+
 (defn resolve-stack []
   (if (= 0 (count (stack []))) nil
       (let [card (get-in (last (stack [])) [:instance/eid])
             types (d/pull (d/db db/conn) [{:instance/card [:card/name {:card/type [:db/ident]}]}] card)
-            ; todo: effects!
             zone (if (or (has-type? :instant types) (has-type? :sorcery types)) :graveyard :battlefield)
             movetx [:db/add card :instance/zone zone]]
-        (d/transact db/conn {:tx-data [movetx]}))))
+        (d/transact db/conn {:tx-data (effects card [movetx])}))))
 
 ; resolve the 3 creatures we put on the stack earlier...
 (resolve-stack)
 (resolve-stack)
 (resolve-stack)
 
-(defn play-lava-spike [target]
-  [{:instance/card [:card/name "Lightning Bolt"]
-    :instance/zone :stack
-    :effect/target target
-    :instance/controller player1
-    :instance/owner player1}])
+(defn play-lightning-bolt [target] (cast-spell player1 "Lightning Bolt" target))
 
-(d/transact db/conn {:tx-data (play-lava-spike player2)})
-(d/transact db/conn {:tx-data (play-lava-spike player2)})
-(d/transact db/conn {:tx-data (play-lava-spike player2)})
+(d/transact db/conn {:tx-data (play-lightning-bolt player1)})
+(d/transact db/conn {:tx-data (play-lightning-bolt player2)})
+(d/transact db/conn {:tx-data (play-lightning-bolt player2)})
 
-(def card-to-resolve (d/pull (d/db db/conn) [{:instance/card [:card/name :card/rules]}
-                                             {:effect/target [:player/name]}]
-                             (first (stack []))))
-(def targetname (get-in card-to-resolve [:effect/target :player/name]))
-
-; todo: db/cas from stack?
-(def resolve-card [:db/add (first (stack [])) :instance/zone :graveyard])
-
-; merge effects and make a single transaction
-(def result [resolve-card (effect/damage targetname 3)])
-(d/transact db/conn {:tx-data result})
-
-(d/q zone-q (d/db db/conn) "Player1" :battlefield)
-(d/q zone-q (d/db db/conn) "Player1" :stack)
-(d/q zone-q (d/db db/conn) "Player1" :graveyard)
-
-(zoneinfo "Player1" :graveyard [{:instance/card [:card/name]}])
+; resolve one lightning bolt from stack
+(resolve-stack)
 
 "mtg db loaded"

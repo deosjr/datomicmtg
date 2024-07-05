@@ -10,15 +10,8 @@
 
 (d/transact db/conn {:tx-data effect-schema})
 
-(def player-life-q '[:find ?e ?life
-                     :in $ ?name
-                     :where
-                     [?e :player/name ?name]
-                     [?e :player/life ?life]])
-
 ; assumes player target for now
-; target should already be an eid, so we should just use a d/pull here
-(defn damage [target amount]
-  (let [[[e currentlife]] (d/q player-life-q (d/db db/conn) target)
+(defn damage [targeteid amount]
+  (let [{currentlife :player/life} (d/pull (d/db db/conn) [:player/life] targeteid)
         newlife (- currentlife amount)]
-    [:db/cas e :player/life currentlife newlife]))
+    [:db/cas targeteid :player/life currentlife newlife]))

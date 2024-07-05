@@ -17,6 +17,7 @@
   [:img.cardimg {:src (imageurl multiverseid)}])
 
 ; todo: permanent is overused, also for sorcery cards on stack for example
+; todo: all this 'get-in' can be destructuring of maps instead
 (defn permanent [cardinstance]
   (let [eid (get-in cardinstance [:instance/eid])
         mid (get-in cardinstance [:instance/card :card/multiverseid])
@@ -52,6 +53,7 @@
   (html5 [:button {:hx-get "/resolve"
                    :hx-select ".mtg"
                    :hx-target "closest .mtg"
+                   ; todo: card preview will flicker!
                    :hx-swap "outerHTML"} 'RESOLVE]
          (cardlist (mtg/stack [{:instance/card [:card/multiverseid]} :effect/target]))))
 
