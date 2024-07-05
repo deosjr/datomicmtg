@@ -24,7 +24,7 @@
         power (get-in cardinstance [:instance/card :creature/power])
         toughness (get-in cardinstance [:instance/card :creature/toughness])
         stats (format "%d/%d" power toughness)]
-    [:div.card {:id eid :target target :_ (if (some? target) (format "on mouseover toggle .highlighted on <div[id=\"%d\"]/> until mouseout" target) "")} (cardimage mid) (if (some? power) [:div.stats stats] "")]))
+    [:div.card {:id eid :target target} (cardimage mid) (if (some? power) [:div.stats stats] "")]))
 
 ; cards is a list of cardinstances with eid and mid
 (defn cardlist [cards]
@@ -82,7 +82,7 @@
              [:div.battlefields "battlefields"
               [:div.battlefield.opponent (battlefield player2)]
               [:div.battlefield {:_ "on click in .card tell it toggle .tapped"} (battlefield player1)]]
-             [:div.stack "stack" (stack)]]])))
+             [:div.stack {:_ "on mouseover in .card tell it set :target to @target then toggle .highlighted on <div[id=\"$:target\"]/> until mouseout"} "stack" (stack)]]])))
 
 (defn resolve-stack [] (mtg/resolve-stack) (redirect "/"))
 
