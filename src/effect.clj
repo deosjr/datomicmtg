@@ -10,8 +10,20 @@
 
 (d/transact db/conn {:tx-data effect-schema})
 
-; assumes player target for now
-(defn damage [targeteid amount]
+(defn damage-player [targeteid amount]
   (let [{currentlife :player/life} (d/pull (d/db db/conn) [:player/life] targeteid)
         newlife (- currentlife amount)]
     [:db/cas targeteid :player/life currentlife newlife]))
+
+(defn damage-creature [targeteid amount]
+  (let [{currentdmg :instance/damage} (d/pull (d/db db/conn) [:instance/damage] targeteid)
+        ; can't use :default 0 because of db/cas
+        actual (if (some? currentdmg) currentdmg 0)
+        newdmg (+ actual amount)]
+    [:db/cas targeteid :instance/damage currentdmg newdmg]))
+
+(defn damage-any [targeteid amount]
+  (let [{lifetotal :player/life} (d/pull (d/db db/conn) [:player/life] targeteid)]
+    (if (some? lifetotal)
+      (damage-player targeteid amount)
+      (damage-creature targeteid amount))))

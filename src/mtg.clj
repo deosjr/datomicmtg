@@ -119,6 +119,7 @@
 ; ?e is the identifier of the card instance
 ; ?tx is the transaction id in which location was last set
 ; ASSUMPTION: tx id is monotonically increasing (so no need for d/tx->t)
+; todo: check if stable when transacting multiple at the same time!
 (def zone-q '[:find ?e ?tx
               :in $ ?name ?zone
               :where
@@ -128,7 +129,7 @@
 
 (defn cardinfo [eid]
   (d/pull (d/db db/conn) [{:instance/card [:card/name :card/type]}
-                          [:instance/tapped :default false]] eid))
+                          [:instance/tapped :default false] [:instance/damage :default 0]] eid))
 
 (defn zoneinfo [player zone selectors]
   (let [conn (d/db db/conn)
@@ -157,8 +158,9 @@
 ; todo: hardcoded lightning bolt effect if there is a target
 (defn effects [cardeid defaulttx]
   (let [{{target :db/id} :effect/target} (d/pull (d/db db/conn) [:effect/target] cardeid)]
-    (if (some? target) (cons (effect/damage target 3) defaulttx) defaulttx)))
+    (if (some? target) (cons (effect/damage-any target 3) defaulttx) defaulttx)))
 
+; todo: clear target
 (defn resolve-stack []
   (if (= 0 (count (stack []))) nil
       (let [card (get-in (last (stack [])) [:instance/eid])
@@ -172,13 +174,35 @@
 (resolve-stack)
 (resolve-stack)
 
+(def gianteid (ffirst (d/q '[:find ?e :where [?e :instance/card [:card/name "Hill Giant"]]] (d/db db/conn))))
+
+(d/pull (d/db db/conn) [:instance/damage] gianteid)
+
 (defn play-lightning-bolt [target] (cast-spell player1 "Lightning Bolt" target))
 
 (d/transact db/conn {:tx-data (play-lightning-bolt player1)})
+(d/transact db/conn {:tx-data (play-lightning-bolt gianteid)})
 (d/transact db/conn {:tx-data (play-lightning-bolt player2)})
 (d/transact db/conn {:tx-data (play-lightning-bolt player2)})
 
 ; resolve one lightning bolt from stack
 (resolve-stack)
+
+; lethal damage as a state-based action, to be checked whenever priority is gained
+(defn dying-creatures [conn]
+  (d/q '[:find ?e
+         :where
+         [?e :instance/card ?c]
+         [?c :creature/toughness ?t]
+         [?e :instance/damage ?d]
+         [(- ?t ?d) ?x]
+         [(<= ?x 0)]]
+       conn))
+
+(defn state-based-actions []
+  (let [eids (first (dying-creatures (d/db db/conn)))]
+    (d/transact db/conn {:tx-data (map #(-> [:db/add % :instance/zone :graveyard]) eids)})))
+
+(state-based-actions)
 
 "mtg db loaded"

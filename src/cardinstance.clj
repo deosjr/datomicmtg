@@ -22,6 +22,11 @@
                        :db/cardinality :db.cardinality/one
                        :db/doc "The player who owns the card instance"}
 
+                      {:db/ident :instance/damage
+                       :db/valueType :db.type/long
+                       :db/cardinality :db.cardinality/one
+                       :db/doc "The amount of damage dealt to this card instance, if any"}
+
                       {:db/ident :instance/tapped
                        :db/valueType :db.type/boolean
                        :db/cardinality :db.cardinality/one

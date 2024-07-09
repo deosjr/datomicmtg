@@ -16,6 +16,11 @@
 (defn cardimage [multiverseid]
   [:img.cardimg {:src (imageurl multiverseid)}])
 
+(defn stats [power toughness damage]
+  (let [remToughness (if (some? damage) (- toughness damage) toughness)
+        styleToughness (if (> toughness remToughness) :div.stat.down :div.stat)]
+    [:div.stats [:div.stat (format "%d" power)] "/" [styleToughness (format "%d" remToughness)]]))
+
 ; todo: permanent is overused, also for sorcery cards on stack for example
 ; todo: all this 'get-in' can be destructuring of maps instead
 (defn permanent [cardinstance]
@@ -24,8 +29,8 @@
         target (get-in cardinstance [:effect/target :db/id])
         power (get-in cardinstance [:instance/card :creature/power])
         toughness (get-in cardinstance [:instance/card :creature/toughness])
-        stats (format "%d/%d" power toughness)]
-    [:div.card {:id eid :target target} (cardimage mid) (if (some? power) [:div.stats stats] "")]))
+        damage (get-in cardinstance [:instance/damage])]
+    [:div.card {:id eid :target target} (cardimage mid) (if (some? power) (stats power toughness damage) "")]))
 
 ; cards is a list of cardinstances with eid and mid
 (defn cardlist [cards]
@@ -33,7 +38,7 @@
 
 ; FOR NOW lands and _other_ permanents are separated in this simple way
 (defn battlefield [player]
-  (let [cards (mtg/zoneinfo player :battlefield [{:instance/card [:card/multiverseid {:card/type [:db/ident]} :creature/power :creature/toughness]}])
+  (let [cards (mtg/zoneinfo player :battlefield [{:instance/card [:card/multiverseid {:card/type [:db/ident]} :creature/power :creature/toughness]} :instance/damage])
         lands (filter #(mtg/has-type? :land %) cards)
         permanents (remove #(mtg/has-type? :land %) cards)]
     (html5
@@ -41,6 +46,7 @@
      [:div.lands (map permanent lands)])))
 
 (comment
+  (mtg/zoneinfo "Player1" :battlefield [{:instance/card [:card/multiverseid {:card/type [:db/ident]} :creature/power :creature/toughness]} :instance/damage])
   (battlefield "Player1"))
 
 (defn graveyard [player]
